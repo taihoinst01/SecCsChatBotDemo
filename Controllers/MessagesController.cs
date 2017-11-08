@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -9,6 +10,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.IO;
+using System.Text;
+
+using System.Threading.Tasks; 
+
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using SecCsChatBotDemo.DB;
@@ -16,6 +22,7 @@ using SecCsChatBotDemo.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+ 
 
 namespace SecCsChatBotDemo
 {
@@ -28,13 +35,9 @@ namespace SecCsChatBotDemo
         public readonly string MEDIADLG = "4";
         int userDataNum = 0;
 
-        int sessionNo = 0;
         string[] strIntent = { };
         string[] strEntity = { };
-
-
-
-
+        
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -42,7 +45,6 @@ namespace SecCsChatBotDemo
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             //HttpResponseMessage response;
-
             var intentList = new List<string>();
             var entityList = new List<string>();
 
@@ -54,7 +56,6 @@ namespace SecCsChatBotDemo
                 DbConnect db = new DbConnect();
                 List<DialogList> dlg = db.SelectInitDialog();
                 
-
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
                 Debug.WriteLine("* dlg.Count : " + dlg.Count);
                 for (int n = 0; n < dlg.Count; n++)
@@ -231,27 +232,54 @@ namespace SecCsChatBotDemo
                 float luisScore = (float)Luis["intents"][0]["score"];
                 int luisEntityCount = (int)Luis["entities"].Count();
                 Debug.WriteLine("* Luis Entity Count : " + luisEntityCount);
-                Debug.WriteLine("* Luis Intents Score : " + luisScore);
-
+                Debug.WriteLine("* Luis Intents Score : " + luisScore); 
+                Debug.WriteLine(Luis.ToString());
+                
                 //
- 
+                var json = new JObject();
+                json.Add("Conversationid", activity.ChannelId);
+                json.Add("Authenticationkey", activity.Recipient.Id);
+                json.Add("answer", orgMent);
+                //Debug.WriteLine(json.ToString());
+
+                JArray conversations = new JArray();
+                var jsonConversations = new JObject();
+                jsonConversations.Add("Luisid", "SecCSChatBot");
+                jsonConversations.Add("Intent", (string)Luis["intents"][0]["intent"]);
+                jsonConversations.Add("Message", orgMent);
+                
+                JArray Entities = new JArray();
+                var jsonEntities = new JObject();
+                for (int i = 0; i < luisEntityCount; i++)
+                {
+                    jsonEntities.Add("Entity", (string)Luis["entities"][i]["entity"]);
+                }
+                Entities.Add(jsonEntities);
+                
+                jsonConversations.Add("Entities", Entities);
+                conversations.Add(jsonConversations);
+                json.Add("conversations", conversations);
+                
+                Debug.WriteLine(json.ToString());
+                String sEntity = json.ToString();
+                
+                // SendChat()
+                String sendResult = await SendChat(sEntity);
+                Debug.WriteLine("* Send Chat() sendResult : "+ sendResult);
 
                 if (luisScore > 0 && luisEntityCount > 0)
                 {
                     string intent = (string)Luis["intents"][0]["intent"];
                     string entity = (string)Luis["entities"][0]["entity"];
-                    Debug.WriteLine("* 1.intent : " + intent + " || entity : "+ entity);
+                    Debug.WriteLine("* 1.intent : " + intent + " || entity : " + entity + " || orgment : " + orgMent);
+                    Debug.WriteLine("* 1-1.ChannelId : " + activity.ChannelId + " || From : " + activity.From.Id);
+                    
                     intent = intent.Replace("\"", "");
                     entity = entity.Replace("\"", "");
-                    entity = entity.Replace(" ", "");
-                    //Debug.WriteLine("* sessionNo : " + sessionNo ); 
+                    entity = entity.Replace(" ", ""); 
                     //Debug.WriteLine("LUIS_INTENT : " + (string)(context.Session["LUIS_INTENT"]));
                     //Debug.WriteLine("LUIS_ENTITY : " + (string)(context.Session["LUIS_ENTITY"]));
 
-                    //
-                    sessionNo = sessionNo + 1;
- 
-                    //
                     intentList.Add(intent);
                     entityList.Add(entity);
 
@@ -752,8 +780,38 @@ namespace SecCsChatBotDemo
             return jsonObj;
         }
 
+        private static async Task<string> SendChat(string sEntity)
+        {
+            string result = "";
+            string urlString = "http://cinsight.asuscomm.com:8009/api/DialogLog/SetDialogData";
+            
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlString);
+            request.ContentType = "text/json";
+            request.Method = "POST";
+            request.Timeout = 5000;
+
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            {
+                streamWriter.Write(sEntity);
+                streamWriter.Flush();
+                streamWriter.Close();
+            }
+
+            var httpResponse = (HttpWebResponse)request.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                result = streamReader.ReadToEnd();
+                //Debug.WriteLine("* SendChat result : "+ result);
+            }            
+            //Debug.WriteLine("* SendChat END ");
+            return result;
+        }
 
 
+        
 
     }
+
+
+
 }

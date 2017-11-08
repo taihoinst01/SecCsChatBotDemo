@@ -2,12 +2,15 @@
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using System.Diagnostics;
+
 
 namespace SecCsChatBotDemo.Dialogs
 {
     [Serializable]
     public class RootDialog : IDialog<object>
     {
+        
         public Task StartAsync(IDialogContext context)
         {
             context.Wait(MessageReceivedAsync);
@@ -27,5 +30,7 @@ namespace SecCsChatBotDemo.Dialogs
 
             context.Wait(MessageReceivedAsync);
         }
+
+
     }
 }
