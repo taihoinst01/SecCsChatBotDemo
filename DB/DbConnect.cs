@@ -32,6 +32,7 @@ namespace SecCsChatBotDemo.DB
 
                 while (rdr.Read())
                 {
+                    Debug.WriteLine("* SelectInitDialog() START");
                     int dlgId = Convert.ToInt32(rdr["DLG_ID"]);
                     string dlgName = rdr["DLG_NAME"] as string;
                     string dlgDescription = rdr["DLG_DESCRIPTION"] as string;
@@ -44,7 +45,7 @@ namespace SecCsChatBotDemo.DB
                     dlg.dlgLang = dlgLang;
                     Debug.WriteLine("dlg.DLG_NM : " + dlg.dlgName);
                     dialog.Add(dlg);
-
+                    Debug.WriteLine("* SelectInitDialog() END");
                 }
             }
             return dialog;

@@ -35,9 +35,13 @@ namespace SecCsChatBotDemo
         public readonly string MEDIADLG = "4";
         int userDataNum = 0;
 
+        int sessionNo = 0;
         string[] strIntent = { };
         string[] strEntity = { };
-        
+
+
+
+
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -45,6 +49,7 @@ namespace SecCsChatBotDemo
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             //HttpResponseMessage response;
+
             var intentList = new List<string>();
             var entityList = new List<string>();
 
@@ -54,161 +59,173 @@ namespace SecCsChatBotDemo
                 Debug.WriteLine("* DB conn : " + activity.Type);
                 //Db
                 DbConnect db = new DbConnect();
-                List<DialogList> dlg = db.SelectInitDialog();
-                
-                ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-                Debug.WriteLine("* dlg.Count : " + dlg.Count);
-                for (int n = 0; n < dlg.Count; n++)
-                {
-                    Debug.WriteLine("* dlgId : " + n + "." + dlg[n].dlgId);
-                    Activity reply2 = activity.CreateReply();
-                    reply2.Recipient = activity.From;
-                    reply2.Type = "message";
-                    reply2.Attachments = new List<Attachment>();
-                    reply2.AttachmentLayout = AttachmentLayoutTypes.Carousel;
 
-                    List<CardList> card = db.SelectDialogCard(dlg[n].dlgId);
-                    List<TextList> text = db.SelectDialogText(dlg[n].dlgId);
-                    List<MediaList> media = db.SelectDialogMedia(dlg[n].dlgId);
+                if (activity.MembersAdded != null && activity.MembersAdded.Any()) {
 
-                    for (int i = 0; i < text.Count; i++)
+                    foreach (var newMember in activity.MembersAdded)
                     {
-                        HeroCard plCard = new HeroCard()
+                        if (newMember.Id != activity.Recipient.Id)
                         {
-                            Title = text[i].cardTitle,
-                            Subtitle = text[i].cardText
-                        };
+                            List<DialogList> dlg = db.SelectInitDialog();
+                            
+                            ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+                            Debug.WriteLine("* dlg.Count : " + dlg.Count);
+                            for (int n = 0; n < dlg.Count; n++)
+                            {
+                                Debug.WriteLine("* dlgId : " + n + "." + dlg[n].dlgId);
+                                Activity reply2 = activity.CreateReply();
+                                reply2.Recipient = activity.From;
+                                reply2.Type = "message";
+                                reply2.Attachments = new List<Attachment>();
+                                reply2.AttachmentLayout = AttachmentLayoutTypes.Carousel;
 
-                        Attachment plAttachment = plCard.ToAttachment();
-                        reply2.Attachments.Add(plAttachment);
+                                List<CardList> card = db.SelectDialogCard(dlg[n].dlgId);
+                                List<TextList> text = db.SelectDialogText(dlg[n].dlgId);
+                                List<MediaList> media = db.SelectDialogMedia(dlg[n].dlgId);
+
+                                for (int i = 0; i < text.Count; i++)
+                                {
+                                    HeroCard plCard = new HeroCard()
+                                    {
+                                        Title = text[i].cardTitle,
+                                        Subtitle = text[i].cardText
+                                    };
+
+                                    Attachment plAttachment = plCard.ToAttachment();
+                                    reply2.Attachments.Add(plAttachment);
+                                }
+
+                                for (int i = 0; i < card.Count; i++)
+                                {
+                                    List<CardImage> cardImages = new List<CardImage>();
+                                    List<CardAction> cardButtons = new List<CardAction>();
+
+                                    if (card[i].imgUrl != null)
+                                    {
+                                        cardImages.Add(new CardImage(url: card[i].imgUrl));
+                                    }
+
+                                    if (card[i].btn1Type != null)
+                                    {
+                                        CardAction plButton = new CardAction()
+                                        {
+                                            Value = card[i].btn1Context,
+                                            Type = card[i].btn1Type,
+                                            Title = card[i].btn1Title
+                                        };
+
+                                        cardButtons.Add(plButton);
+                                    }
+
+                                    if (card[i].btn2Type != null)
+                                    {
+                                        CardAction plButton = new CardAction()
+                                        {
+                                            Value = card[i].btn2Context,
+                                            Type = card[i].btn2Type,
+                                            Title = card[i].btn2Title
+                                        };
+
+                                        cardButtons.Add(plButton);
+                                    }
+
+                                    if (card[i].btn3Type != null)
+                                    {
+                                        CardAction plButton = new CardAction()
+                                        {
+                                            Value = card[i].btn3Context,
+                                            Type = card[i].btn3Type,
+                                            Title = card[i].btn3Title
+                                        };
+
+                                        cardButtons.Add(plButton);
+                                    }
+
+                                    HeroCard plCard = new HeroCard()
+                                    {
+                                        Title = card[i].cardTitle,
+                                        Subtitle = card[i].cardSubTitle,
+                                        Images = cardImages,
+                                        Buttons = cardButtons
+                                    };
+
+                                    Attachment plAttachment = plCard.ToAttachment();
+                                    reply2.Attachments.Add(plAttachment);
+                                }
+
+                                for (int i = 0; i < media.Count; i++)
+                                {
+                                    List<MediaUrl> mediaURL = new List<MediaUrl>();
+                                    List<CardAction> cardButtons = new List<CardAction>();
+
+                                    if (media[i].mediaUrl != null)
+                                    {
+                                        mediaURL.Add(new MediaUrl(url: media[i].mediaUrl));
+                                    }
+
+                                    if (media[i].btn1Type != null)
+                                    {
+                                        CardAction plButton = new CardAction()
+                                        {
+                                            Value = media[i].btn1Context,
+                                            Type = media[i].btn1Type,
+                                            Title = media[i].btn1Title
+                                        };
+
+                                        cardButtons.Add(plButton);
+                                    }
+
+                                    if (media[i].btn2Type != null)
+                                    {
+                                        CardAction plButton = new CardAction()
+                                        {
+                                            Value = media[i].btn2Context,
+                                            Type = media[i].btn2Type,
+                                            Title = media[i].btn2Title
+                                        };
+
+                                        cardButtons.Add(plButton);
+                                    }
+
+                                    if (media[i].btn3Type != null)
+                                    {
+                                        CardAction plButton = new CardAction()
+                                        {
+                                            Value = media[i].btn3Context,
+                                            Type = media[i].btn3Type,
+                                            Title = media[i].btn3Title
+                                        };
+
+                                        cardButtons.Add(plButton);
+                                    }
+
+                                    VideoCard plCard = new VideoCard()
+                                    {
+                                        Title = media[i].cardTitle,
+                                        Text = media[i].cardText,
+                                        Media = mediaURL,
+                                        Buttons = cardButtons,
+                                        Autostart = false
+                                    };
+
+                                    Attachment plAttachment = plCard.ToAttachment();
+                                    reply2.Attachments.Add(plAttachment);
+                                }
+
+                                var reply1 = await connector.Conversations.SendToConversationAsync(reply2);
+
+                            }
+                        }
+
                     }
-
-                    for (int i = 0; i < card.Count; i++)
-                    {
-                        List<CardImage> cardImages = new List<CardImage>();
-                        List<CardAction> cardButtons = new List<CardAction>();
-
-                        if (card[i].imgUrl != null)
-                        {
-                            cardImages.Add(new CardImage(url: card[i].imgUrl));
-                        }
-
-                        if (card[i].btn1Type != null)
-                        {
-                            CardAction plButton = new CardAction()
-                            {
-                                Value = card[i].btn1Context,
-                                Type = card[i].btn1Type,
-                                Title = card[i].btn1Title
-                            };
-
-                            cardButtons.Add(plButton);
-                        }
-
-                        if (card[i].btn2Type != null)
-                        {
-                            CardAction plButton = new CardAction()
-                            {
-                                Value = card[i].btn2Context,
-                                Type = card[i].btn2Type,
-                                Title = card[i].btn2Title
-                            };
-
-                            cardButtons.Add(plButton);
-                        }
-
-                        if (card[i].btn3Type != null)
-                        {
-                            CardAction plButton = new CardAction()
-                            {
-                                Value = card[i].btn3Context,
-                                Type = card[i].btn3Type,
-                                Title = card[i].btn3Title
-                            };
-
-                            cardButtons.Add(plButton);
-                        }
-
-                        HeroCard plCard = new HeroCard()
-                        {
-                            Title = card[i].cardTitle,
-                            Subtitle = card[i].cardSubTitle,
-                            Images = cardImages,
-                            Buttons = cardButtons
-                        };
-
-                        Attachment plAttachment = plCard.ToAttachment();
-                        reply2.Attachments.Add(plAttachment);
-                    }
-
-                    for (int i = 0; i < media.Count; i++)
-                    {
-                        List<MediaUrl> mediaURL = new List<MediaUrl>();
-                        List<CardAction> cardButtons = new List<CardAction>();
-
-                        if (media[i].mediaUrl != null)
-                        {
-                            mediaURL.Add(new MediaUrl(url: media[i].mediaUrl));
-                        }
-
-                        if (media[i].btn1Type != null)
-                        {
-                            CardAction plButton = new CardAction()
-                            {
-                                Value = media[i].btn1Context,
-                                Type = media[i].btn1Type,
-                                Title = media[i].btn1Title
-                            };
-
-                            cardButtons.Add(plButton);
-                        }
-
-                        if (media[i].btn2Type != null)
-                        {
-                            CardAction plButton = new CardAction()
-                            {
-                                Value = media[i].btn2Context,
-                                Type = media[i].btn2Type,
-                                Title = media[i].btn2Title
-                            };
-
-                            cardButtons.Add(plButton);
-                        }
-
-                        if (media[i].btn3Type != null)
-                        {
-                            CardAction plButton = new CardAction()
-                            {
-                                Value = media[i].btn3Context,
-                                Type = media[i].btn3Type,
-                                Title = media[i].btn3Title
-                            };
-
-                            cardButtons.Add(plButton);
-                        }
-
-                        VideoCard plCard = new VideoCard()
-                        {
-                            Title = media[i].cardTitle,
-                            Text = media[i].cardText,
-                            Media = mediaURL,
-                            Buttons = cardButtons,
-                            Autostart = false
-                        };
-
-                        Attachment plAttachment = plCard.ToAttachment();
-                        reply2.Attachments.Add(plAttachment);
-                    }
-
-                    var reply1 = await connector.Conversations.SendToConversationAsync(reply2);
+                    DateTime endTime = DateTime.Now;
+                    Debug.WriteLine("프로그램 수행시간 : {0}/ms", ((endTime - startTime).Milliseconds));
+                    Debug.WriteLine("* activity.Type : " + activity.Type);
+                    Debug.WriteLine("* activity.Recipient.Id : " + activity.Recipient.Id);
+                    Debug.WriteLine("* activity.ServiceUrl : " + activity.ServiceUrl);
+                        //var welcome = "";
+                        //var welcomeMsg = "";
                 }
-                DateTime endTime = DateTime.Now;
-                Debug.WriteLine("프로그램 수행시간 : {0}/ms", ((endTime - startTime).Milliseconds));
-                Debug.WriteLine("* activity.Type : " + activity.Type);
-                Debug.WriteLine("* activity.Recipient.Id : " + activity.Recipient.Id);
-                Debug.WriteLine("* activity.ServiceUrl : " + activity.ServiceUrl);
-                var welcome = "";
-                var welcomeMsg = "";
 
             }
             else if (activity.Type == ActivityTypes.Message)
@@ -232,7 +249,8 @@ namespace SecCsChatBotDemo
                 float luisScore = (float)Luis["intents"][0]["score"];
                 int luisEntityCount = (int)Luis["entities"].Count();
                 Debug.WriteLine("* Luis Entity Count : " + luisEntityCount);
-                Debug.WriteLine("* Luis Intents Score : " + luisScore); 
+                Debug.WriteLine("* Luis Intents Score : " + luisScore);
+                
                 Debug.WriteLine(Luis.ToString());
                 
                 //
@@ -241,31 +259,33 @@ namespace SecCsChatBotDemo
                 json.Add("Authenticationkey", activity.Recipient.Id);
                 json.Add("answer", orgMent);
                 //Debug.WriteLine(json.ToString());
-
+                //Debug.WriteLine("json 1");
                 JArray conversations = new JArray();
                 var jsonConversations = new JObject();
                 jsonConversations.Add("Luisid", "SecCSChatBot");
                 jsonConversations.Add("Intent", (string)Luis["intents"][0]["intent"]);
                 jsonConversations.Add("Message", orgMent);
-                
+                //Debug.WriteLine("json 2 | luisEntityCount:"+ luisEntityCount);
+                //var jsonEntities = new JObject();
+                //string[] jsonEntities;
                 JArray Entities = new JArray();
                 var jsonEntities = new JObject();
+                
                 for (int i = 0; i < luisEntityCount; i++)
                 {
-                    jsonEntities.Add("Entity", (string)Luis["entities"][i]["entity"]);
+                    //Debug.WriteLine("json 2-1");
+                    Entities.Insert(i, new JObject( new JProperty("Entity", (string)Luis["entities"][i]["entity"])));
+                    //Debug.WriteLine("json 2-2");
                 }
-                Entities.Add(jsonEntities);
-                
+                //Debug.WriteLine("json 3");
                 jsonConversations.Add("Entities", Entities);
                 conversations.Add(jsonConversations);
                 json.Add("conversations", conversations);
-                
+                //Debug.WriteLine("json 4");
                 Debug.WriteLine(json.ToString());
                 String sEntity = json.ToString();
-                
-                // SendChat()
+
                 String sendResult = await SendChat(sEntity);
-                Debug.WriteLine("* Send Chat() sendResult : "+ sendResult);
 
                 if (luisScore > 0 && luisEntityCount > 0)
                 {
@@ -276,10 +296,15 @@ namespace SecCsChatBotDemo
                     
                     intent = intent.Replace("\"", "");
                     entity = entity.Replace("\"", "");
-                    entity = entity.Replace(" ", ""); 
+                    entity = entity.Replace(" ", "");
+                    //Debug.WriteLine("* sessionNo : " + sessionNo ); 
                     //Debug.WriteLine("LUIS_INTENT : " + (string)(context.Session["LUIS_INTENT"]));
                     //Debug.WriteLine("LUIS_ENTITY : " + (string)(context.Session["LUIS_ENTITY"]));
 
+                    //
+                    sessionNo = sessionNo + 1;
+ 
+                    //
                     intentList.Add(intent);
                     entityList.Add(entity);
 
@@ -298,6 +323,12 @@ namespace SecCsChatBotDemo
 
                     }
 
+                    if (intent == "end")
+                    {
+                        Debug.WriteLine("* endCS | make Json START"); 
+
+
+                    }
 
                     //userData.SetProperty<List>(IList, intentList);
                     userData.SetProperty<string>("luisIntent", intent);
@@ -555,7 +586,29 @@ namespace SecCsChatBotDemo
 
                             await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
 
-                            List <DialogList> dlg = db.SelectDialog(dlgID);
+                            //  SetDialogBizTripData
+                            if(dlgID == 2015)
+                            {
+                                Debug.WriteLine("* dlgID:2015 | make Json");
+
+                                var bizTripJson = new JObject();
+                                bizTripJson.Add("Conversationid", activity.ChannelId);
+                                bizTripJson.Add("Authenticationkey", activity.Recipient.Id);
+                                bizTripJson.Add("Modelname", "WD16J7800KW");
+                                bizTripJson.Add("Conditions", "세탁기소음");
+                                bizTripJson.Add("Customername", "김설현");
+                                bizTripJson.Add("phonenumber", "010-6444-3434");
+                                bizTripJson.Add("Address", "서울특별시 마포구 신수동 234-2 번지");
+                                String sBizTrip = bizTripJson.ToString();
+                                Debug.WriteLine("* sendBizTrip || bizTripJson : "+ bizTripJson);
+                                String sendBizTripResult = await sendBizTrip(sBizTrip);
+                                
+                                Debug.WriteLine("* RETURN sendBizTripResult : "+ sendBizTripResult);
+
+                            }
+
+
+                            List<DialogList> dlg = db.SelectDialog(dlgID);
 
                             for (int n = 0; n < dlg.Count; n++)
                             {
@@ -788,7 +841,7 @@ namespace SecCsChatBotDemo
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlString);
             request.ContentType = "text/json";
             request.Method = "POST";
-            request.Timeout = 5000;
+            request.Timeout = 133000;
 
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
             {
@@ -801,12 +854,40 @@ namespace SecCsChatBotDemo
             using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
             {
                 result = streamReader.ReadToEnd();
-                //Debug.WriteLine("* SendChat result : "+ result);
-            }            
-            //Debug.WriteLine("* SendChat END ");
+                Debug.WriteLine("* SendChat result : "+ result);
+            }
+            
+            Debug.WriteLine("* SendChat END ");
             return result;
         }
 
+        private static async Task<string> sendBizTrip(string sEntity)
+        {
+            string result = "";
+            string urlString = "http://cinsight.asuscomm.com:8009/api/DialogBizTrip/SetDialogBizTripData";
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlString);
+            request.ContentType = "text/json";
+            request.Method = "POST";
+            request.Timeout = 9000;
+
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            {
+                streamWriter.Write(sEntity);
+                streamWriter.Flush();
+                streamWriter.Close();
+            }
+
+            var httpResponse = (HttpWebResponse)request.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                result = streamReader.ReadToEnd();
+                Debug.WriteLine("* SendBizTrip result : " + result);
+            }
+
+            Debug.WriteLine("* SendBizTrip END ");
+            return result;
+        }
 
         
 
