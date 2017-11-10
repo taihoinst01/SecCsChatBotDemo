@@ -59,18 +59,24 @@ namespace SecCsChatBotDemo
                 //Db
                 DbConnect db = new DbConnect();
 
+                List<DialogList> dlg = db.SelectInitDialog();
+
+                ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+                Debug.WriteLine("* ConversationUpdate | dlg.Count : " + dlg.Count);
+
                 //if (activity.MembersAdded != null && activity.MembersAdded.Any()) {
                 //if (activity.MembersAdded.Any())
                 //{
-                    foreach (var newMember in activity.MembersAdded)
+                foreach (var newMember in activity.MembersAdded)
                     {
                         if (newMember.Id != activity.Recipient.Id)
                         {
+                            /*    
                             List<DialogList> dlg = db.SelectInitDialog();
                             
                             ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
                             Debug.WriteLine("* ConversationUpdate | dlg.Count : " + dlg.Count);
-
+                            */
                             for (int n = 0; n < dlg.Count; n++)
                             {
                                 Debug.WriteLine("* ConversationUpdate | dlgId : " + n + "." + dlg[n].dlgId);
