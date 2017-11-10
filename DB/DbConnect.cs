@@ -247,6 +247,16 @@ namespace SecCsChatBotDemo.DB
             SqlDataReader rdr = null;
             List<LuisList> luisList = new List<LuisList>();
 
+            if(entities.StartsWith("010-"))
+            {
+                entities = "010-";
+            }
+
+            if (entities.StartsWith("2017-"))
+            {
+                entities = "2017-";
+            }
+
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 conn.Open();
@@ -286,6 +296,21 @@ namespace SecCsChatBotDemo.DB
         {
             SqlDataReader rdr = null;
             List<LuisList> luisList = new List<LuisList>();
+
+            if(orgment.StartsWith("서울특별시"))
+            {
+                orgment = "서울특별시";
+            }
+
+            if(entities.StartsWith("010-"))
+            {
+                entities = "010-";
+            }
+
+            if (entities.StartsWith("2017-"))
+            {
+                entities = "2017-";
+            }
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
