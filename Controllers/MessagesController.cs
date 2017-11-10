@@ -49,19 +49,19 @@ namespace SecCsChatBotDemo
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             //HttpResponseMessage response;
-
             var intentList = new List<string>();
             var entityList = new List<string>();
 
             if (activity.Type == ActivityTypes.ConversationUpdate)
             {
                 DateTime startTime = DateTime.Now;
-                Debug.WriteLine("* DB conn : " + activity.Type);
+                Debug.WriteLine("* ConversationUpdate | DB conn : " + activity.Type);
                 //Db
                 DbConnect db = new DbConnect();
 
-                if (activity.MembersAdded != null && activity.MembersAdded.Any()) {
-
+                //if (activity.MembersAdded != null && activity.MembersAdded.Any()) {
+                if (activity.MembersAdded.Any())
+                {
                     foreach (var newMember in activity.MembersAdded)
                     {
                         if (newMember.Id != activity.Recipient.Id)
@@ -69,10 +69,11 @@ namespace SecCsChatBotDemo
                             List<DialogList> dlg = db.SelectInitDialog();
                             
                             ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-                            Debug.WriteLine("* dlg.Count : " + dlg.Count);
+                            Debug.WriteLine("* ConversationUpdate | dlg.Count : " + dlg.Count);
+
                             for (int n = 0; n < dlg.Count; n++)
                             {
-                                Debug.WriteLine("* dlgId : " + n + "." + dlg[n].dlgId);
+                                Debug.WriteLine("* ConversationUpdate | dlgId : " + n + "." + dlg[n].dlgId);
                                 Activity reply2 = activity.CreateReply();
                                 reply2.Recipient = activity.From;
                                 reply2.Type = "message";
@@ -218,13 +219,15 @@ namespace SecCsChatBotDemo
                         }
 
                     }
+
                     DateTime endTime = DateTime.Now;
                     Debug.WriteLine("프로그램 수행시간 : {0}/ms", ((endTime - startTime).Milliseconds));
                     Debug.WriteLine("* activity.Type : " + activity.Type);
                     Debug.WriteLine("* activity.Recipient.Id : " + activity.Recipient.Id);
                     Debug.WriteLine("* activity.ServiceUrl : " + activity.ServiceUrl);
-                        //var welcome = "";
-                        //var welcomeMsg = "";
+                    //var welcome = "";
+                    //var welcomeMsg = "";
+
                 }
 
             }
@@ -600,10 +603,12 @@ namespace SecCsChatBotDemo
                                 bizTripJson.Add("phonenumber", "010-6444-3434");
                                 bizTripJson.Add("Address", "서울특별시 마포구 신수동 234-2 번지");
                                 String sBizTrip = bizTripJson.ToString();
-                                Debug.WriteLine("* sendBizTrip || bizTripJson : "+ bizTripJson);
+                                //Debug.WriteLine("* sendBizTrip || bizTripJson : "+ bizTripJson);
+
                                 String sendBizTripResult = await sendBizTrip(sBizTrip);
-                                
                                 Debug.WriteLine("* RETURN sendBizTripResult : "+ sendBizTripResult);
+                                // sendBizTripResult JSON Parse START..
+
 
                             }
 
