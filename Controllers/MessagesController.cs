@@ -60,8 +60,8 @@ namespace SecCsChatBotDemo
                 DbConnect db = new DbConnect();
 
                 //if (activity.MembersAdded != null && activity.MembersAdded.Any()) {
-                if (activity.MembersAdded.Any())
-                {
+                //if (activity.MembersAdded.Any())
+                //{
                     foreach (var newMember in activity.MembersAdded)
                     {
                         if (newMember.Id != activity.Recipient.Id)
@@ -228,7 +228,7 @@ namespace SecCsChatBotDemo
                     //var welcome = "";
                     //var welcomeMsg = "";
 
-                }
+                //}
 
             }
             else if (activity.Type == ActivityTypes.Message)
