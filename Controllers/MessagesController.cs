@@ -612,157 +612,185 @@ namespace SecCsChatBotDemo
                                 Debug.WriteLine("* RETURN sendBizTripResult : "+ sendBizTripResult);
                                 // sendBizTripResult JSON Parse START..
 
+                                JObject parse = JObject.Parse(sendBizTripResult);
+                                JArray array = JArray.Parse(parse["Dialogs"].ToString());
 
-                            }
+                                string status = parse["Status"].ToString();
+                                int dialogCount = int.Parse(parse["DialogCount"].ToString());
+                                List<DialogJson> dialogs = new List<DialogJson>();
 
+                                foreach(JObject itemObj in array)
+                                {
+                                    DialogJson dialogTest = new DialogJson();
+                                    dialogTest.type = itemObj["Type"].ToString();
+                                    //dialogTest.title = itemObj["Title"].ToString();
+                                    dialogTest.text = itemObj["Text"].ToString();
+                                    dialogs.Add(dialogTest);
+                                }
 
-                            List<DialogList> dlg = db.SelectDialog(dlgID);
+                                for (int j = 0; j < dialogCount; j++)
+                                {
+                                    HeroCard plCard = new HeroCard()
+                                    {
+                                        Title = "",
+                                        Subtitle = dialogs[j].text
+                                    };
 
-                            for (int n = 0; n < dlg.Count; n++)
+                                    Attachment plAttachment = plCard.ToAttachment();
+                                    reply2.Attachments.Add(plAttachment);
+                                }
+
+                            } else
                             {
-                                string dlgType = dlg[n].dlgType;
+                                List<DialogList> dlg = db.SelectDialog(dlgID);
 
-                                if (dlgType == TEXTDLG)
+                                for (int n = 0; n < dlg.Count; n++)
                                 {
-                                    List<TextList> text = db.SelectDialogText(dlg[n].dlgId);
+                                    string dlgType = dlg[n].dlgType;
 
-                                    for (int j = 0; j < text.Count; j++)
+                                    if (dlgType == TEXTDLG)
                                     {
-                                        HeroCard plCard = new HeroCard()
-                                        {
-                                            Title = text[j].cardTitle,
-                                            Subtitle = text[j].cardText
-                                        };
+                                        List<TextList> text = db.SelectDialogText(dlg[n].dlgId);
 
-                                        Attachment plAttachment = plCard.ToAttachment();
-                                        reply2.Attachments.Add(plAttachment);
+                                        for (int j = 0; j < text.Count; j++)
+                                        {
+                                            HeroCard plCard = new HeroCard()
+                                            {
+                                                Title = text[j].cardTitle,
+                                                Subtitle = text[j].cardText
+                                            };
+
+                                            Attachment plAttachment = plCard.ToAttachment();
+                                            reply2.Attachments.Add(plAttachment);
+                                        }
+                                    }
+                                    else if (dlgType == CARDDLG)
+                                    {
+                                        List<CardList> card = db.SelectDialogCard(dlg[n].dlgId);
+
+                                        for (int j = 0; j < card.Count; j++)
+                                        {
+                                            List<CardImage> cardImages = new List<CardImage>();
+                                            List<CardAction> cardButtons = new List<CardAction>();
+
+                                            if (card[j].imgUrl != null)
+                                            {
+                                                cardImages.Add(new CardImage(url: card[j].imgUrl));
+                                            }
+
+                                            if (card[j].btn1Type != null)
+                                            {
+                                                CardAction plButton = new CardAction()
+                                                {
+                                                    Value = card[j].btn1Context,
+                                                    Type = card[j].btn1Type,
+                                                    Title = card[j].btn1Title
+                                                };
+
+                                                cardButtons.Add(plButton);
+                                            }
+
+                                            if (card[j].btn2Type != null)
+                                            {
+                                                CardAction plButton = new CardAction()
+                                                {
+                                                    Value = card[j].btn2Context,
+                                                    Type = card[j].btn2Type,
+                                                    Title = card[j].btn2Title
+                                                };
+
+                                                cardButtons.Add(plButton);
+                                            }
+
+                                            if (card[j].btn3Type != null)
+                                            {
+                                                CardAction plButton = new CardAction()
+                                                {
+                                                    Value = card[j].btn3Context,
+                                                    Type = card[j].btn3Type,
+                                                    Title = card[j].btn3Title
+                                                };
+
+                                                cardButtons.Add(plButton);
+                                            }
+
+                                            HeroCard plCard = new HeroCard()
+                                            {
+                                                Title = card[j].cardTitle,
+                                                Subtitle = card[j].cardSubTitle,
+                                                Images = cardImages,
+                                                Buttons = cardButtons
+                                            };
+
+                                            Attachment plAttachment = plCard.ToAttachment();
+                                            reply2.Attachments.Add(plAttachment);
+                                        }
+                                    }
+                                    else if (dlgType == MEDIADLG)
+                                    {
+                                        List<MediaList> media = db.SelectDialogMedia(dlg[n].dlgId);
+
+                                        for (int j = 0; j < media.Count; j++)
+                                        {
+                                            List<MediaUrl> mediaURL = new List<MediaUrl>();
+                                            List<CardAction> cardButtons = new List<CardAction>();
+
+                                            if (media[j].mediaUrl != null)
+                                            {
+                                                mediaURL.Add(new MediaUrl(url: media[j].mediaUrl));
+                                            }
+
+                                            if (media[j].btn1Type != null)
+                                            {
+                                                CardAction plButton = new CardAction()
+                                                {
+                                                    Value = media[j].btn1Context,
+                                                    Type = media[j].btn1Type,
+                                                    Title = media[j].btn1Title
+                                                };
+
+                                                cardButtons.Add(plButton);
+                                            }
+
+                                            if (media[j].btn2Type != null)
+                                            {
+                                                CardAction plButton = new CardAction()
+                                                {
+                                                    Value = media[j].btn2Context,
+                                                    Type = media[j].btn2Type,
+                                                    Title = media[j].btn2Title
+                                                };
+
+                                                cardButtons.Add(plButton);
+                                            }
+
+                                            if (media[j].btn3Type != null)
+                                            {
+                                                CardAction plButton = new CardAction()
+                                                {
+                                                    Value = media[j].btn3Context,
+                                                    Type = media[j].btn3Type,
+                                                    Title = media[j].btn3Title
+                                                };
+
+                                                cardButtons.Add(plButton);
+                                            }
+
+                                            VideoCard plCard = new VideoCard()
+                                            {
+                                                Title = media[j].cardTitle,
+                                                Text = media[j].cardText,
+                                                Media = mediaURL,
+                                                Buttons = cardButtons,
+                                                Autostart = false
+                                            };
+
+                                            Attachment plAttachment = plCard.ToAttachment();
+                                            reply2.Attachments.Add(plAttachment);
+                                        }
                                     }
                                 }
-                                else if (dlgType == CARDDLG)
-                                {
-                                    List<CardList> card = db.SelectDialogCard(dlg[n].dlgId);
 
-                                    for (int j = 0; j < card.Count; j++)
-                                    {
-                                        List<CardImage> cardImages = new List<CardImage>();
-                                        List<CardAction> cardButtons = new List<CardAction>();
-
-                                        if (card[j].imgUrl != null)
-                                        {
-                                            cardImages.Add(new CardImage(url: card[j].imgUrl));
-                                        }
-
-                                        if (card[j].btn1Type != null)
-                                        {
-                                            CardAction plButton = new CardAction()
-                                            {
-                                                Value = card[j].btn1Context,
-                                                Type = card[j].btn1Type,
-                                                Title = card[j].btn1Title
-                                            };
-
-                                            cardButtons.Add(plButton);
-                                        }
-
-                                        if (card[j].btn2Type != null)
-                                        {
-                                            CardAction plButton = new CardAction()
-                                            {
-                                                Value = card[j].btn2Context,
-                                                Type = card[j].btn2Type,
-                                                Title = card[j].btn2Title
-                                            };
-
-                                            cardButtons.Add(plButton);
-                                        }
-
-                                        if (card[j].btn3Type != null)
-                                        {
-                                            CardAction plButton = new CardAction()
-                                            {
-                                                Value = card[j].btn3Context,
-                                                Type = card[j].btn3Type,
-                                                Title = card[j].btn3Title
-                                            };
-
-                                            cardButtons.Add(plButton);
-                                        }
-
-                                        HeroCard plCard = new HeroCard()
-                                        {
-                                            Title = card[j].cardTitle,
-                                            Subtitle = card[j].cardSubTitle,
-                                            Images = cardImages,
-                                            Buttons = cardButtons
-                                        };
-
-                                        Attachment plAttachment = plCard.ToAttachment();
-                                        reply2.Attachments.Add(plAttachment);
-                                    }
-                                }
-                                else if (dlgType == MEDIADLG)
-                                {
-                                    List<MediaList> media = db.SelectDialogMedia(dlg[n].dlgId);
-
-                                    for (int j = 0; j < media.Count; j++)
-                                    {
-                                        List<MediaUrl> mediaURL = new List<MediaUrl>();
-                                        List<CardAction> cardButtons = new List<CardAction>();
-
-                                        if (media[j].mediaUrl != null)
-                                        {
-                                            mediaURL.Add(new MediaUrl(url: media[j].mediaUrl));
-                                        }
-
-                                        if (media[j].btn1Type != null)
-                                        {
-                                            CardAction plButton = new CardAction()
-                                            {
-                                                Value = media[j].btn1Context,
-                                                Type = media[j].btn1Type,
-                                                Title = media[j].btn1Title
-                                            };
-
-                                            cardButtons.Add(plButton);
-                                        }
-
-                                        if (media[j].btn2Type != null)
-                                        {
-                                            CardAction plButton = new CardAction()
-                                            {
-                                                Value = media[j].btn2Context,
-                                                Type = media[j].btn2Type,
-                                                Title = media[j].btn2Title
-                                            };
-
-                                            cardButtons.Add(plButton);
-                                        }
-
-                                        if (media[j].btn3Type != null)
-                                        {
-                                            CardAction plButton = new CardAction()
-                                            {
-                                                Value = media[j].btn3Context,
-                                                Type = media[j].btn3Type,
-                                                Title = media[j].btn3Title
-                                            };
-
-                                            cardButtons.Add(plButton);
-                                        }
-
-                                        VideoCard plCard = new VideoCard()
-                                        {
-                                            Title = media[j].cardTitle,
-                                            Text = media[j].cardText,
-                                            Media = mediaURL,
-                                            Buttons = cardButtons,
-                                            Autostart = false
-                                        };
-
-                                        Attachment plAttachment = plCard.ToAttachment();
-                                        reply2.Attachments.Add(plAttachment);
-                                    }
-                                }
                             }
 
                             var reply1 = await connector.Conversations.SendToConversationAsync(reply2);
@@ -861,6 +889,7 @@ namespace SecCsChatBotDemo
             var httpResponse = (HttpWebResponse)request.GetResponse();
             using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
             {
+                string res = streamReader.ReadLine();
                 result = streamReader.ReadToEnd();
                 Debug.WriteLine("* SendChat result : "+ result);
             }

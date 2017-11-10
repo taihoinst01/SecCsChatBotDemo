@@ -119,6 +119,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\CardList.cs" />
+    <Compile Include="Models\DialogJson.cs" />
     <Compile Include="Models\DialogList.cs" />
     <Compile Include="Models\LuisList.cs" />
     <Compile Include="Models\MediaList.cs" />
