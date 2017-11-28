@@ -12,7 +12,8 @@ namespace SecCsChatBotDemo.DB
 {
     public class DbConnect
     {
-        string connStr = "Data Source=taihoinst.database.windows.net;Initial Catalog=taihoLab;User ID=taihoinst;Password=taiho123@;";
+        /*string connStr = "Data Source=taihoinst.database.windows.net;Initial Catalog=taihoLab;User ID=taihoinst;Password=taiho123@;";*/
+        string connStr = "Data Source=faxtimedb.database.windows.net;Initial Catalog=taihoML2;User ID=faxtime;Password=test2016!;";
         StringBuilder sb = new StringBuilder();
 
         public List<DialogList> SelectInitDialog()
