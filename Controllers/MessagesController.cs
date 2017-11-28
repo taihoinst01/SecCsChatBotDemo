@@ -280,11 +280,7 @@ namespace SecCsChatBotDemo
                 for (int i = 0; i < luisEntityCount; i++)
                 {
                     //Debug.WriteLine("json 2-1");
-                    /** jys 2017.11.28 수정 entity --> type으로 수정 */
-                    /**Entities.Insert(i, new JObject( new JProperty("Entity", (string)Luis["entities"][i]["entity"])));*/
-                    string entityNm = (string)Luis["entities"][i]["type"];
-                    entityNm = entityNm.Substring(0, entityNm.IndexOf("::"));
-                    Entities.Insert(i, new JObject(new JProperty("Entity", entityNm)));
+                    Entities.Insert(i, new JObject( new JProperty("Entity", (string)Luis["entities"][i]["entity"])));
                     //Debug.WriteLine("json 2-2");
                 }
                 //Debug.WriteLine("json 3");
@@ -300,10 +296,7 @@ namespace SecCsChatBotDemo
                 if (luisScore > 0 && luisEntityCount > 0)
                 {
                     string intent = (string)Luis["intents"][0]["intent"];
-                    /** jys 2017.11.28 수정 entity --> type으로 수정 */
-                    /** string entity = (string)Luis["entities"][0]["entity"]; */
-                    string entity = (string)Luis["entities"][0]["type"];
-                    entity = entity.Substring(0, entity.IndexOf("::"));
+                    string entity = (string)Luis["entities"][0]["entity"];
                     Debug.WriteLine("* 1.intent : " + intent + " || entity : " + entity + " || orgment : " + orgMent);
                     Debug.WriteLine("* 1-1.ChannelId : " + activity.ChannelId + " || From : " + activity.From.Id);
                     
@@ -325,12 +318,10 @@ namespace SecCsChatBotDemo
                     if (intent == "customerInfo")
                     {
                         var luisCustomerInfo = userData.GetProperty<string>("luisCustomerInfo");
-                        /** jys 2017.11.28 수정 entity --> type으로 수정 */
-                        /**
                         if (entity == "김설현")
                         {
                             luisCustomerInfo = "";
-                        } */
+                        }
                         //var luisCustomerInfo = userData.GetProperty<string>("luisCustomerInfo");
                         luisCustomerInfo = luisCustomerInfo + "\n" + orgMent;
                         userData.SetProperty<string>("luisCustomerInfo", luisCustomerInfo);
